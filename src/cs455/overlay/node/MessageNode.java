@@ -23,6 +23,7 @@ import cs455.overlay.commands.Node;
 import cs455.overlay.commands.RegisterNeighbourCommand;
 import cs455.overlay.commands.RegistrationCommand;
 import cs455.overlay.commands.ResponseCommand;
+import cs455.overlay.commands.TaskCompleteCommand;
 import cs455.overlay.commands.TaskInitiateCommand;
 
 public class MessageNode implements Runnable {
@@ -337,6 +338,20 @@ public class MessageNode implements Runnable {
 			this.stat_sumOfSentPayload += cmd.payload;
 			sendMessages(cmd.toIpAddress, cmd.toPort, cmd.unpack());
 		}
+		
+		informTheRegistryTaskCompleted(selfNode.ipAddress, messageNodePort);
+	}
+
+	public void informTheRegistryTaskCompleted(String IP,int port) throws Exception {
+		// TODO Auto-generated method stub
+		TaskCompleteCommand cmd = new TaskCompleteCommand(IP,port);
+		
+		TCPSender tcpSender = new TCPSender();
+		
+		Socket sc = null;
+	
+		sc = new Socket(this.registryIP, this.registryNodePort);
+		tcpSender.sendData(sc, cmd.unpack());
 	}
 
 	public void sendMessages(String ipAddress, int port, byte[] data) throws IOException {

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import cs455.overlay.commands.DeRegistrationCommand;
@@ -19,6 +20,7 @@ import cs455.overlay.commands.MessaginNodesListCommand;
 import cs455.overlay.commands.Node;
 import cs455.overlay.commands.RegistrationCommand;
 import cs455.overlay.commands.ResponseCommand;
+import cs455.overlay.commands.TaskCompleteCommand;
 import cs455.overlay.commands.TaskInitiateCommand;
 
 public class Registry implements Runnable {
@@ -26,10 +28,12 @@ public class Registry implements Runnable {
 	public static final String EXIT_COMMAND = "exit";
 
 	public static int NODE_COUNTER = 0;
-	public static String[] arr = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T" };
+	public static String[] arr = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q",
+			"R", "S", "T" };
 
 	HashMap<Integer, Node> registeredNodes = new HashMap<Integer, Node>();
 	HashMap<Node, ArrayList<Node>> overLay;
+	Set<Node> taskCompletedNodeList = new HashSet<Node>();
 	HashSet<Link> links = new HashSet<Link>();
 	private ServerSocket serversocket;
 	private String registryNodeName;
@@ -44,11 +48,11 @@ public class Registry implements Runnable {
 	}
 
 	public static void main(String[] args) throws Exception {
-		if(args.length < 1) {
+		if (args.length < 1) {
 			System.out.println("Error: Please pass registry port number");
 			System.exit(0);
 		}
-		
+
 		int port = 0;
 		try {
 			port = Integer.parseInt(args[0]);
@@ -56,7 +60,7 @@ public class Registry implements Runnable {
 			System.out.println("Error: Please provide numneric argument.");
 			System.exit(0);
 		}
-		
+
 		Registry registryNode = new Registry();
 		registryNode.intializeRegistryNode(port);
 
@@ -76,9 +80,9 @@ public class Registry implements Runnable {
 				registryNode.setupOverlay();
 			} else if ("assign-weights".equalsIgnoreCase(exitStr)) {
 				registryNode.assignWeights();
-			} else if("task-initiate".equalsIgnoreCase(exitStr)) {
+			} else if ("task-initiate".equalsIgnoreCase(exitStr)) {
 				registryNode.taskInitiate();
-			} else if("pull-traffic-summary".equalsIgnoreCase(exitStr) ) {
+			} else if ("pull-traffic-summary".equalsIgnoreCase(exitStr)) {
 				registryNode.trafficSummary();
 			}
 		}
@@ -86,13 +90,13 @@ public class Registry implements Runnable {
 	}
 
 	private void trafficSummary() {
-		
+
 	}
 
 	private void taskInitiate() throws Exception {
 		TaskInitiateCommand cmd = new TaskInitiateCommand();
 		cmd.rounds = 10;
-		
+
 		byte[] data = cmd.unpack();
 		for (Node key : overLay.keySet()) {
 			System.out.println("Sending Task Initiate to:" + key);
@@ -101,21 +105,21 @@ public class Registry implements Runnable {
 	}
 
 	private void assignWeights() throws Exception {
-		if(overLay == null || overLay.keySet().isEmpty()) {
+		if (overLay == null || overLay.keySet().isEmpty()) {
 			System.out.println("Overlay is empty");
 		}
 		links = new HashSet<>();
 		System.out.println((registeredNodes.size() * Cr) + 10);
 		IntStream ints = new Random().ints((registeredNodes.size() * Cr) + 10, 0, 10);
 		int[] array = ints.toArray();
-		int arraIndex =0;
-		
+		int arraIndex = 0;
+
 		for (Node key : overLay.keySet()) {
 			ArrayList<Node> conectedWith = overLay.get(key);
 			for (Node eachConnection : conectedWith) {
 				Link link = new Link(key, eachConnection, array[arraIndex]);
 				Link inverseLink = new Link(eachConnection, key, array[arraIndex]);
-				if(!links.contains(link)) {
+				if (!links.contains(link)) {
 					links.add(link);
 					links.add(inverseLink);
 					arraIndex++;
@@ -180,7 +184,7 @@ public class Registry implements Runnable {
 	}
 
 	public void sendMessageToPeerNodeForconnectionwithOtherPeerNode(HashMap<Node, ArrayList<Node>> peerList)
-	        throws IOException {
+			throws IOException {
 		for (Node node : peerList.keySet()) {
 			ArrayList<Node> peerNodelist = peerList.get(node);
 			createSocketForOvelaySetup(peerNodelist, node);
@@ -222,7 +226,14 @@ public class Registry implements Runnable {
 		this.registryNodeName = "Registry-Node";
 		this.serversocket = new ServerSocket(port);
 		this.messageRecevingPort = this.serversocket.getLocalPort();
-		System.out.println("Registry Node Name : " + this.registryNodeName + " Listenning on :" + this.messageRecevingPort);
+		System.out.println(
+				"Registry Node Name : " + this.registryNodeName + " Listenning on :" + this.messageRecevingPort);
+	}
+
+	public void addNodeToTaskCompletedCollection(String IP, int Port) {
+
+		Node n = new Node(IP, "", Port);
+		taskCompletedNodeList.add(n);
 	}
 
 	@Override
@@ -254,6 +265,11 @@ public class Registry implements Runnable {
 					cmd.pack(din);
 					ResponseCommand responseCmd = RemoveMessaginNode(cmd.ipAddress, cmd.port);
 					createSocketFAndSendOutgoingMessages(cmd.ipAddress, cmd.port, responseCmd.unpack());
+				}
+				if (str_request_type != null && str_request_type.equalsIgnoreCase("TASK_COMPLETED")) {
+					TaskCompleteCommand cmd = new TaskCompleteCommand();
+					cmd.pack(din);
+					addNodeToTaskCompletedCollection(cmd.ipAddress, cmd.fromPort);
 				}
 				din.close();
 				socket.close();
