@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -34,6 +35,7 @@ public class MessageNode implements Runnable {
 
 	private String messageNodeName;
 	private int messageNodePort;
+	private String messageNodeIP;
 
 	private int registryNodePort = 0;
 	private String registryIP;
@@ -79,8 +81,11 @@ public class MessageNode implements Runnable {
 
 		ServerSocket sc = new ServerSocket(0);
 
+		InetAddress ip = InetAddress.getLocalHost();
+
 		MessageNode messageNode = new MessageNode();
 		messageNode.serverSocket = sc;
+		messageNode.messageNodeIP = (ip.getHostAddress()).trim();
 		messageNode.messageNodePort = sc.getLocalPort();
 		messageNode.intializeMessgingNode(hostName, port);
 
@@ -126,7 +131,9 @@ public class MessageNode implements Runnable {
 		Socket sc = null;
 		try {
 			sc = new Socket(registryIP, registryNodePort);
-			DeRegistrationCommand cmd = new DeRegistrationCommand("127.0.0.1", this.messageNodePort);
+			DeRegistrationCommand cmd = new DeRegistrationCommand(this.messageNodeIP, this.messageNodePort); // new
+																												// DeRegistrationCommand("127.0.0.1",
+																												// this.messageNodePort);
 			TCPSender tcpSender = new TCPSender();
 			tcpSender.sendData(sc, cmd.unpack());
 		} catch (SocketException ex) {
@@ -156,7 +163,7 @@ public class MessageNode implements Runnable {
 		Socket sc = null;
 		try {
 			sc = new Socket(this.registryIP, this.registryNodePort);
-			RegistrationCommand cmd = new RegistrationCommand("127.0.0.1", this.messageNodePort);
+			RegistrationCommand cmd = new RegistrationCommand(this.messageNodeIP, this.messageNodePort);
 			TCPSender tcpSender = new TCPSender();
 			tcpSender.sendData(sc, cmd.unpack());
 		} catch (SocketException ex) {
@@ -189,7 +196,8 @@ public class MessageNode implements Runnable {
 		try {
 			System.out.println("Connecting with: " + toNode);
 			sc = new Socket(toNode.ipAddress, toNode.port);
-			RegisterNeighbourCommand cmd = new RegisterNeighbourCommand("127.0.0.1", this.messageNodePort, false);
+			RegisterNeighbourCommand cmd = new RegisterNeighbourCommand(this.messageNodeIP, this.messageNodePort,
+					false);
 			byte[] data = cmd.unpack();
 			new TCPSender().sendData(sc, data);
 		} catch (SocketException ex) {
@@ -250,7 +258,7 @@ public class MessageNode implements Runnable {
 					System.out.println(cmd);
 					allLinks = cmd.links;
 					allNodes = allNodes(allLinks);
-					Node mysself = new Node("127.0.0.1", null, messageNodePort);
+					Node mysself = new Node(messageNodeIP, null, messageNodePort);
 
 					for (Link link : allLinks) {
 						if (link.from.equals(mysself)) {
@@ -286,14 +294,14 @@ public class MessageNode implements Runnable {
 				} else if ("PULL_TRAFFIC_SUMMARY".equals(str_request_type)) {
 
 					TrafficSummaryCommand cmd = new TrafficSummaryCommand();
-					
-					cmd.ipAddress="127.0.0.1";
-					cmd.fromPort=   this.messageNodePort   ;
-					cmd.numberofMessageSent=this.stat_sentMesssages;
-					cmd.summationOfMessgeSent=this.stat_sumOfSentPayload;
-					cmd.numberOfMessageReceived=this.stat_receivedMessages;
+
+					cmd.ipAddress = this.messageNodeIP;// "127.0.0.1";
+					cmd.fromPort = this.messageNodePort;
+					cmd.numberofMessageSent = this.stat_sentMesssages;
+					cmd.summationOfMessgeSent = this.stat_sumOfSentPayload;
+					cmd.numberOfMessageReceived = this.stat_receivedMessages;
 					cmd.summationOfMessageReceived = this.stat_sumOfReceivedPayLoad;
-					cmd.messageRelayed=	 this.stat_relayedMessages;	
+					cmd.messageRelayed = this.stat_relayedMessages;
 					System.out.println(cmd);
 					sendMessages(registryIP, registryNodePort, cmd.unpack());
 				}
@@ -321,7 +329,10 @@ public class MessageNode implements Runnable {
 
 	private void initiateMessages(int rounds) throws Exception {
 
-		Node selfNode = new Node("127.0.0.1", null, messageNodePort);
+		Node selfNode = new Node(messageNodeIP, null, messageNodePort); // new
+																		// Node("127.0.0.1",
+																		// null,
+																		// messageNodePort);
 		HashSet<Node> copyOfMemebers = new HashSet<>(allNodes);
 		copyOfMemebers.remove(selfNode);
 
@@ -339,8 +350,8 @@ public class MessageNode implements Runnable {
 			MessageCommand cmd = null;
 			if (neighBours.keySet().contains(sink_node)) {
 				// direct neighbor
-				cmd = new MessageCommand(sink_node.ipAddress, sink_node.port, sink_node.ipAddress,
-						sink_node.port, random.nextInt());
+				cmd = new MessageCommand(sink_node.ipAddress, sink_node.port, sink_node.ipAddress, sink_node.port,
+						random.nextInt());
 			} else {
 				// no direct connection. so send via first neighbor.
 				Node firstNeighbour = neighBours.keySet().iterator().next();

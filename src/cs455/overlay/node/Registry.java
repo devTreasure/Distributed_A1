@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class Registry implements Runnable {
 	private ServerSocket serversocket;
 	private String registryNodeName;
 	private int messageRecevingPort;
+	private String  messageRecevingIP;
 	private int Cr = 4; // TODO: change this to four later
 	private int total_message_sent;
 	private int total_message_received;
@@ -254,8 +256,12 @@ public class Registry implements Runnable {
 		this.registryNodeName = "Registry-Node";
 		this.serversocket = new ServerSocket(port);
 		this.messageRecevingPort = this.serversocket.getLocalPort();
+		
+		InetAddress ip = InetAddress.getLocalHost();		
+		this.messageRecevingIP = (ip.getHostAddress()).trim();
+		
 		System.out.println(
-				"Registry Node Name : " + this.registryNodeName + " Listenning on :" + this.messageRecevingPort);
+				"Registry Node Name : " + this.registryNodeName  + "IP: " + this. messageRecevingIP + ", Listenning on :" + this.messageRecevingPort);
 	}
 
 	public void addNodeToTaskCompletedCollection(String IP, int Port, byte[] data) throws Exception {
@@ -326,7 +332,9 @@ public class Registry implements Runnable {
 					
 				     total_message_sent+=cmd.numberofMessageSent;
 				     total_message_received+=cmd.numberOfMessageReceived;
-				     
+				     total_sum_message_received+=cmd.summationOfMessageReceived;
+				     total_sum_message_sent+=cmd.summationOfMessageReceived;
+				    		 
 			
 				}				
 				
