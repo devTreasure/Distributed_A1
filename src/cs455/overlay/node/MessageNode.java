@@ -25,6 +25,7 @@ import cs455.overlay.commands.RegistrationCommand;
 import cs455.overlay.commands.ResponseCommand;
 import cs455.overlay.commands.TaskCompleteCommand;
 import cs455.overlay.commands.TaskInitiateCommand;
+import cs455.overlay.commands.TrafficSummaryCommand;
 
 public class MessageNode implements Runnable {
 
@@ -282,6 +283,13 @@ public class MessageNode implements Runnable {
 						cmd.toPort = firstNeighbour.port;
 						sendMessages(cmd.toIpAddress, cmd.toPort, cmd.unpack());
 					}
+				} else if ("PULL_TRAFFIC_SUMMARY".equals(str_request_type)) {
+
+					TrafficSummaryCommand cmd = new TrafficSummaryCommand("127.0.0.1", this.messageNodePort,
+													this.stat_sentMesssages, this.stat_sumOfSentPayload, 
+													this.stat_receivedMessages,
+													this.stat_sumOfReceivedPayLoad, this.stat_relayedMessages);
+					sendMessages(registryIP, registryNodePort, cmd.unpack());
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -338,22 +346,19 @@ public class MessageNode implements Runnable {
 			this.stat_sumOfSentPayload += cmd.payload;
 			sendMessages(cmd.toIpAddress, cmd.toPort, cmd.unpack());
 		}
-		
+
 		informTheRegistryTaskCompleted(selfNode.ipAddress, messageNodePort);
 	}
 
-	public void informTheRegistryTaskCompleted(String IP,int port) throws Exception {
+	public void informTheRegistryTaskCompleted(String IP, int port) throws Exception {
 		// TODO Auto-generated method stub
-		try
-		{
-		TaskCompleteCommand cmd = new TaskCompleteCommand(IP,port);		
-		TCPSender tcpSender = new TCPSender();		
-		Socket sc = new Socket(this.registryIP, this.registryNodePort);
-	     tcpSender.sendData(sc, cmd.unpack());
-		
-		}
-		catch(Exception ex)
-		{
+		try {
+			TaskCompleteCommand cmd = new TaskCompleteCommand(IP, port);
+			TCPSender tcpSender = new TCPSender();
+			Socket sc = new Socket(this.registryIP, this.registryNodePort);
+			tcpSender.sendData(sc, cmd.unpack());
+
+		} catch (Exception ex) {
 			System.out.println(ex.getMessage());
 		}
 	}

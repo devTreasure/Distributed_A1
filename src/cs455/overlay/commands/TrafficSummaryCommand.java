@@ -12,16 +12,17 @@ public class TrafficSummaryCommand {
 	public String ipAddress;
 	public int fromPort;
 	public int numberofMessageSent;
-	public int summationOfMessgeSent;
+	public double summationOfMessgeSent;
 	public int numberOfMessageReceived;
-	public int summationOfMessageReceived;
+	public double summationOfMessageReceived;
 	public int messageRelayed;
 
-	public TrafficSummaryCommand() {
+	public TrafficSummaryCommand()
+	{
+		
 	}
-
-	public TrafficSummaryCommand(String ipAddress, int port, int number_of_message_sent, int sum_message_sent,
-			int message_recevied, int sum_message_received, int message_relayed) {
+	public TrafficSummaryCommand(String ipAddress, int port, int number_of_message_sent, double sum_message_sent,
+			int message_recevied, double sum_message_received, int message_relayed) {
 
 		this.ipAddress = ipAddress;
 		this.fromPort = port;
@@ -47,9 +48,9 @@ public class TrafficSummaryCommand {
 			dout.write(ipAddress.getBytes());
 			dout.writeInt(fromPort);
 			dout.writeInt(numberofMessageSent);
-			dout.writeInt(summationOfMessgeSent);
+			dout.writeDouble(summationOfMessgeSent);
 			dout.writeInt(numberOfMessageReceived);
-			dout.writeInt(summationOfMessageReceived);
+			dout.writeDouble(summationOfMessageReceived);
 			dout.writeInt(messageRelayed);
 			dout.flush();
 			marshalledBytes = baOutputStream.toByteArray();

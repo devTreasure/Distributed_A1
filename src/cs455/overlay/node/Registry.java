@@ -23,6 +23,7 @@ import cs455.overlay.commands.RegistrationCommand;
 import cs455.overlay.commands.ResponseCommand;
 import cs455.overlay.commands.TaskCompleteCommand;
 import cs455.overlay.commands.TaskInitiateCommand;
+import cs455.overlay.commands.TrafficSummaryCommand;
 import cs455.overlay.commands.PullTrafficSummaryCommand;
 
 public class Registry implements Runnable {
@@ -260,9 +261,10 @@ public class Registry implements Runnable {
 	}
 	
 	
-	public void printStatisticsForTheNode()
+	public void printStatisticsForTheNode() throws Exception
 	{
-		System.out.println("Print node statistics");
+		//System.out.println("Print node statistics");
+		//trafficSummary();
 	}
 
 	@Override
@@ -298,19 +300,45 @@ public class Registry implements Runnable {
 				if (str_request_type != null && str_request_type.equalsIgnoreCase("TASK_COMPLETED")) {
 					TaskCompleteCommand cmd = new TaskCompleteCommand();
 					cmd.pack(din);
-					addNodeToTaskCompletedCollection(cmd.ipAddress, cmd.fromPort,cmd.unpack());
+					addNodeToTaskCompletedCollection(cmd.ipAddress, cmd.fromPort,null);  //Checking that all completed node collected 
+					if( taskCompletedNodeList.size() > 0 && taskCompletedNodeList.size() ==registeredNodes.size() )
+					{
+						intiatePullTrafficeRequestToAllNodes();
+					}
 				}
+	
 				if (str_request_type != null && str_request_type.equalsIgnoreCase("TRAFFIC_SUMMARY")) {
 					//TaskCompleteCommand cmd = new TaskCompleteCommand();
 					//cmd.pack(din);
 					//addNodeToTaskCompletedCollection(cmd.ipAddress, cmd.fromPort,cmd.unpack());
-					printStatisticsForTheNode();
-				}
+					TrafficSummaryCommand cmd = new TrafficSummaryCommand();
+					
+
+					//public TrafficSummaryCommand(String ipAddress, int port, int number_of_message_sent, double sum_message_sent,
+					//		int message_recevied, double sum_message_received, int message_relayed) {
+					cmd.pack(din);
+					printNodeStatistics(cmd.ipAddress,cmd.fromPort,cmd.numberofMessageSent,cmd.numberOfMessageReceived,
+							cmd.summationOfMessgeSent,cmd.summationOfMessageReceived,cmd.messageRelayed);
+				}				
+				
 				din.close();
 				socket.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	private void intiatePullTrafficeRequestToAllNodes() throws Exception {
+		// TODO Auto-generated method stub
+		trafficSummary();
+	}
+
+	private void printNodeStatistics(String ipAddress, int fromPort, int numberofMessageSent,
+			int numberOfMessageReceived, double summationOfMessgeSent, double summationOfMessageReceived,
+			int messageRelayed) {
+			// TODO Auto-generated method stub
+			System.out.println(ipAddress + " --  " + numberofMessageSent +" --  " + numberOfMessageReceived+" --  " +summationOfMessgeSent+ " --  "+
+							summationOfMessageReceived +  " -- " + messageRelayed);
 	}
 }
