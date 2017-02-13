@@ -51,7 +51,17 @@ public class TaskCompleteCommand {
 	}
 
 	public void pack(DataInputStream din) {
-		// Has no Data
+     
+	      try {
+	          int IP_length = 0;
+	          IP_length = din.readInt();
+	          byte[] IP_address = new byte[IP_length];
+	          din.readFully(IP_address);
+	          ipAddress = new String(IP_address);
+	          fromPort = din.readInt();
+	       } catch (IOException e) {
+	          e.printStackTrace();
+	       }  
 	}
 
 }

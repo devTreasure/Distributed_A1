@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +23,7 @@ import cs455.overlay.commands.RegistrationCommand;
 import cs455.overlay.commands.ResponseCommand;
 import cs455.overlay.commands.TaskCompleteCommand;
 import cs455.overlay.commands.TaskInitiateCommand;
+import cs455.overlay.commands.PullTrafficSummaryCommand;
 
 public class Registry implements Runnable {
 
@@ -31,7 +33,8 @@ public class Registry implements Runnable {
 	public static String[] arr = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q",
 			"R", "S", "T" };
 
-	HashMap<Integer, Node> registeredNodes = new HashMap<Integer, Node>();
+	// HashMap<Integer, Node> registeredNodes = new HashMap<Integer, Node>();
+	Set<Node> registeredNodes = new HashSet<Node>();
 	HashMap<Node, ArrayList<Node>> overLay;
 	Set<Node> taskCompletedNodeList = new HashSet<Node>();
 	HashSet<Link> links = new HashSet<Link>();
@@ -89,7 +92,17 @@ public class Registry implements Runnable {
 		System.out.println("Bye.");
 	}
 
-	private void trafficSummary() {
+	private void trafficSummary() throws Exception {
+
+		if (taskCompletedNodeList.size() == registeredNodes.size()) {
+
+			for (Node node : taskCompletedNodeList) {
+				Socket sc = new Socket(node.ipAddress, node.port);
+				PullTrafficSummaryCommand cmd = new PullTrafficSummaryCommand();
+				TCPSender tcpSender = new TCPSender();
+				tcpSender.sendData(sc, cmd.unpack());
+			}
+		}
 
 	}
 
@@ -139,19 +152,21 @@ public class Registry implements Runnable {
 		System.out.println("Received Registration request...");
 		System.out.println("Node Counter :::" + NODE_COUNTER);
 		ResponseCommand cmd = null;
-		if (registeredNodes.containsKey(port)) {
-			System.out.println("Already regisred");
-			cmd = new ResponseCommand("REGISTER_RESPONSE", "FAILURE", "Node Already regisred");
-		} else {
-			Node n = new Node();
-			n.ipAddress = IP;
-			n.port = port;
-			n.node_name = arr[NODE_COUNTER];
-			registeredNodes.put(port, n);
-			System.out.println("Messaging node added: " + n);
-			NODE_COUNTER += 1;
-			cmd = new ResponseCommand("REGISTER_RESPONSE", "SUCCESS", "Node regisred");
-		}
+		/*
+		 * if (registeredNodes.containsKey(port)) {
+		 * System.out.println("Already regisred"); cmd = new
+		 * ResponseCommand("REGISTER_RESPONSE", "FAILURE",
+		 * "Node Already regisred"); }
+		 */// else {
+		Node n = new Node();
+		n.ipAddress = IP;
+		n.port = port;
+		n.node_name = arr[NODE_COUNTER];
+		registeredNodes.add(n);
+		System.out.println("Messaging node added: " + n);
+		NODE_COUNTER += 1;
+		cmd = new ResponseCommand("REGISTER_RESPONSE", "SUCCESS", "Node regisred");
+		// }
 		System.out.println("Total Registerd Nodes " + registeredNodes.size());
 		return cmd;
 	}
@@ -160,8 +175,13 @@ public class Registry implements Runnable {
 
 		System.out.println("Received De-Registration request..." + IP + ":" + port);
 		ResponseCommand cmd = null;
-		if (registeredNodes.containsKey(port)) {
-			registeredNodes.remove(port);
+
+		Node n = new Node();
+		n.ipAddress = IP;
+		n.port = port;
+
+		if (registeredNodes.contains(n)) {
+			registeredNodes.remove(n);
 			cmd = new ResponseCommand("DEREGISTER_RESPONSE", "SUCCESS", "Node de-regisred");
 		} else {
 			cmd = new ResponseCommand("DEREGISTER_RESPONSE", "FAILURE", "Node not registered.");
@@ -178,7 +198,9 @@ public class Registry implements Runnable {
 
 	public void setupCollectionProcessforNodeAsPeerMesagingNode() throws IOException {
 		SetupOverLayStrategy strategy = new SetupOverLayStrategy();
-		ArrayList<Node> nodes = new ArrayList<>(registeredNodes.values());
+		// ArrayList<Node> nodes = new ArrayList<>(registeredNodes.values());
+
+		ArrayList<Node> nodes = new ArrayList<Node>(registeredNodes);
 		overLay = strategy.SelectNodeForPeerConection(nodes, Cr);
 		sendMessageToPeerNodeForconnectionwithOtherPeerNode(overLay);
 	}
@@ -230,10 +252,17 @@ public class Registry implements Runnable {
 				"Registry Node Name : " + this.registryNodeName + " Listenning on :" + this.messageRecevingPort);
 	}
 
-	public void addNodeToTaskCompletedCollection(String IP, int Port) {
+	public void addNodeToTaskCompletedCollection(String IP, int Port, byte[] data) throws Exception {
 
 		Node n = new Node(IP, "", Port);
 		taskCompletedNodeList.add(n);
+
+	}
+	
+	
+	public void printStatisticsForTheNode()
+	{
+		System.out.println("Print node statistics");
 	}
 
 	@Override
@@ -269,7 +298,13 @@ public class Registry implements Runnable {
 				if (str_request_type != null && str_request_type.equalsIgnoreCase("TASK_COMPLETED")) {
 					TaskCompleteCommand cmd = new TaskCompleteCommand();
 					cmd.pack(din);
-					addNodeToTaskCompletedCollection(cmd.ipAddress, cmd.fromPort);
+					addNodeToTaskCompletedCollection(cmd.ipAddress, cmd.fromPort,cmd.unpack());
+				}
+				if (str_request_type != null && str_request_type.equalsIgnoreCase("TRAFFIC_SUMMARY")) {
+					//TaskCompleteCommand cmd = new TaskCompleteCommand();
+					//cmd.pack(din);
+					//addNodeToTaskCompletedCollection(cmd.ipAddress, cmd.fromPort,cmd.unpack());
+					printStatisticsForTheNode();
 				}
 				din.close();
 				socket.close();

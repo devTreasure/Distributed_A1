@@ -6,19 +6,20 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class ResponseCommand {
+public class PullTrafficSummaryCommand {
 
-	public String messageType;
-	public String status;
-	public String aditionalInfo;
+	public final String cmd = "PULL_TRAFFIC_SUMMARY";
+	//public String fromIpAddress;
+	//public int fromort;
+	//public boolean writingBack = false;
 
-	public ResponseCommand() {
+	public PullTrafficSummaryCommand() {
 	}
 
-	public ResponseCommand(String messageType, String status, String aditionalInfo) {
-		this.messageType = messageType;
-		this.status = status;
-		this.aditionalInfo = aditionalInfo;
+	public PullTrafficSummaryCommand(String fromIpAddress, int fromPort, boolean writingBack) {
+		//this.fromIpAddress = fromIpAddress;
+		//this.fromort = fromPort;
+		//this.writingBack = writingBack;
 	}
 
 	public byte[] unpack() {
@@ -29,12 +30,12 @@ public class ResponseCommand {
 		try {
 			baOutputStream = new ByteArrayOutputStream();
 			dout = new DataOutputStream(new BufferedOutputStream(baOutputStream));
-			dout.writeInt(messageType.length());
-			dout.write(messageType.getBytes());
-			dout.writeInt(status.length());
-			dout.write(status.getBytes());
-			dout.writeInt(aditionalInfo.length());
-			dout.write(aditionalInfo.getBytes());
+			dout.writeInt(cmd.length());
+			dout.write(cmd.getBytes());
+		//	dout.writeInt(fromIpAddress.length());
+		//	dout.write(fromIpAddress.getBytes());
+		//	dout.writeInt(fromort);
+		//	dout.writeBoolean(writingBack);
 			dout.flush();
 			marshalledBytes = baOutputStream.toByteArray();
 		} catch (Exception e) {
@@ -52,13 +53,13 @@ public class ResponseCommand {
 
 	public void pack(DataInputStream din) {
 		try {
-			byte[] m = new byte[din.readInt()];
-			din.readFully(m);
-			this.status = new String(m);
-
-			m = new byte[din.readInt()];
-			din.readFully(m);
-			this.aditionalInfo = new String(m);
+			int IP_length = 0;
+			IP_length = din.readInt();
+			byte[] IP_address = new byte[IP_length];
+			din.readFully(IP_address);
+		//	fromIpAddress = new String(IP_address);
+		//	fromort = din.readInt();
+		//	writingBack = din.readBoolean();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -66,8 +67,6 @@ public class ResponseCommand {
 
 	@Override
 	public String toString() {
-		return "ResponseCommand [messageType=" + messageType + ", status=" + status + ", aditionalInfo=" + aditionalInfo
-				+ "]";
+		return "Pull TrafficSummary ";
 	}
-
 }

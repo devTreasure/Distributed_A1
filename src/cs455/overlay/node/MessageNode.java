@@ -344,14 +344,18 @@ public class MessageNode implements Runnable {
 
 	public void informTheRegistryTaskCompleted(String IP,int port) throws Exception {
 		// TODO Auto-generated method stub
-		TaskCompleteCommand cmd = new TaskCompleteCommand(IP,port);
+		try
+		{
+		TaskCompleteCommand cmd = new TaskCompleteCommand(IP,port);		
+		TCPSender tcpSender = new TCPSender();		
+		Socket sc = new Socket(this.registryIP, this.registryNodePort);
+	     tcpSender.sendData(sc, cmd.unpack());
 		
-		TCPSender tcpSender = new TCPSender();
-		
-		Socket sc = null;
-	
-		sc = new Socket(this.registryIP, this.registryNodePort);
-		tcpSender.sendData(sc, cmd.unpack());
+		}
+		catch(Exception ex)
+		{
+			System.out.println(ex.getMessage());
+		}
 	}
 
 	public void sendMessages(String ipAddress, int port, byte[] data) throws IOException {
