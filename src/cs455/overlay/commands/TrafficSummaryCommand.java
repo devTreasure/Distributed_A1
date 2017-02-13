@@ -17,10 +17,10 @@ public class TrafficSummaryCommand {
 	public double summationOfMessageReceived;
 	public int messageRelayed;
 
-	public TrafficSummaryCommand()
-	{
-		
+	public TrafficSummaryCommand() {
+
 	}
+
 	public TrafficSummaryCommand(String ipAddress, int port, int number_of_message_sent, double sum_message_sent,
 			int message_recevied, double sum_message_received, int message_relayed) {
 
@@ -75,6 +75,12 @@ public class TrafficSummaryCommand {
 			din.readFully(IP_address);
 			ipAddress = new String(IP_address);
 			fromPort = din.readInt();
+
+			numberofMessageSent = din.readInt();
+			summationOfMessgeSent = din.readDouble();
+			numberOfMessageReceived = din.readInt();
+			summationOfMessageReceived = din.readDouble();
+			messageRelayed = din.readInt();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -82,7 +88,10 @@ public class TrafficSummaryCommand {
 
 	@Override
 	public String toString() {
-		return "RegistrationCommand [cmd=" + cmd + ", ipAddress=" + ipAddress + ", fromPort=" + fromPort + "]";
+		return "TrafficSummaryCommand [cmd=" + cmd + ", ipAddress=" + ipAddress + ", fromPort=" + fromPort
+				+ ", numberofMessageSent=" + numberofMessageSent + ", summationOfMessgeSent=" + summationOfMessgeSent
+				+ ", numberOfMessageReceived=" + numberOfMessageReceived + ", summationOfMessageReceived="
+				+ summationOfMessageReceived + ", messageRelayed=" + messageRelayed + "]";
 	}
 
 }

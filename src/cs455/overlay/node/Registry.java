@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,6 +42,12 @@ public class Registry implements Runnable {
 	private String registryNodeName;
 	private int messageRecevingPort;
 	private int Cr = 4; // TODO: change this to four later
+	private int total_message_sent;
+	private int total_message_received;
+	private double total_sum_message_sent;
+	private double total_sum_message_received;
+	
+	
 
 	private Registry() {
 	}
@@ -276,7 +281,7 @@ public class Registry implements Runnable {
 			try {
 				socket = serversocket.accept();
 
-				System.out.println(">>> Received Request:");
+				//System.out.println(">>> Received Request:");
 				din = new DataInputStream(socket.getInputStream());
 
 				int request_Typelength = din.readInt();
@@ -311,14 +316,18 @@ public class Registry implements Runnable {
 					//TaskCompleteCommand cmd = new TaskCompleteCommand();
 					//cmd.pack(din);
 					//addNodeToTaskCompletedCollection(cmd.ipAddress, cmd.fromPort,cmd.unpack());
-					TrafficSummaryCommand cmd = new TrafficSummaryCommand();
-					
+					TrafficSummaryCommand cmd = new TrafficSummaryCommand();	
 
 					//public TrafficSummaryCommand(String ipAddress, int port, int number_of_message_sent, double sum_message_sent,
 					//		int message_recevied, double sum_message_received, int message_relayed) {
 					cmd.pack(din);
 					printNodeStatistics(cmd.ipAddress,cmd.fromPort,cmd.numberofMessageSent,cmd.numberOfMessageReceived,
 							cmd.summationOfMessgeSent,cmd.summationOfMessageReceived,cmd.messageRelayed);
+					
+				     total_message_sent+=cmd.numberofMessageSent;
+				     total_message_received+=cmd.numberOfMessageReceived;
+				     
+			
 				}				
 				
 				din.close();

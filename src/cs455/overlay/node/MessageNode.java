@@ -285,10 +285,16 @@ public class MessageNode implements Runnable {
 					}
 				} else if ("PULL_TRAFFIC_SUMMARY".equals(str_request_type)) {
 
-					TrafficSummaryCommand cmd = new TrafficSummaryCommand("127.0.0.1", this.messageNodePort,
-													this.stat_sentMesssages, this.stat_sumOfSentPayload, 
-													this.stat_receivedMessages,
-													this.stat_sumOfReceivedPayLoad, this.stat_relayedMessages);
+					TrafficSummaryCommand cmd = new TrafficSummaryCommand();
+					
+					cmd.ipAddress="127.0.0.1";
+					cmd.fromPort=   this.messageNodePort   ;
+					cmd.numberofMessageSent=this.stat_sentMesssages;
+					cmd.summationOfMessgeSent=this.stat_sumOfSentPayload;
+					cmd.numberOfMessageReceived=this.stat_receivedMessages;
+					cmd.summationOfMessageReceived = this.stat_sumOfReceivedPayLoad;
+					cmd.messageRelayed=	 this.stat_relayedMessages;	
+					System.out.println(cmd);
 					sendMessages(registryIP, registryNodePort, cmd.unpack());
 				}
 			} catch (Exception e) {
@@ -322,24 +328,24 @@ public class MessageNode implements Runnable {
 		Iterator<Node> iterator = copyOfMemebers.iterator();
 
 		for (int i = 0; i < rounds; i++) {
-			Node overLayMember = null;
+			Node sink_node = null;
 			if (iterator.hasNext()) {
-				overLayMember = iterator.next();
+				sink_node = iterator.next();
 			} else {
 				// restart iteration.
 				iterator = copyOfMemebers.iterator();
-				overLayMember = iterator.next();
+				sink_node = iterator.next();
 			}
 			MessageCommand cmd = null;
-			if (neighBours.keySet().contains(overLayMember)) {
+			if (neighBours.keySet().contains(sink_node)) {
 				// direct neighbor
-				cmd = new MessageCommand(overLayMember.ipAddress, overLayMember.port, overLayMember.ipAddress,
-						overLayMember.port, random.nextInt());
+				cmd = new MessageCommand(sink_node.ipAddress, sink_node.port, sink_node.ipAddress,
+						sink_node.port, random.nextInt());
 			} else {
 				// no direct connection. so send via first neighbor.
 				Node firstNeighbour = neighBours.keySet().iterator().next();
-				cmd = new MessageCommand(firstNeighbour.ipAddress, firstNeighbour.port, overLayMember.ipAddress,
-						overLayMember.port, random.nextInt());
+				cmd = new MessageCommand(firstNeighbour.ipAddress, firstNeighbour.port, sink_node.ipAddress,
+						sink_node.port, random.nextInt());
 			}
 			System.out.println(cmd);
 			this.stat_sentMesssages++;
