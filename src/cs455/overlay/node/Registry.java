@@ -43,7 +43,7 @@ public class Registry implements Runnable {
 	private String registryNodeName;
 	private int messageRecevingPort;
 	private String  messageRecevingIP;
-	private int Cr = 4; // TODO: change this to four later
+	private int Cr = 4; 
 	private int total_message_sent;
 	private int total_message_received;
 	private double total_sum_message_sent;
@@ -116,7 +116,7 @@ public class Registry implements Runnable {
 
 	private void taskInitiate() throws Exception {
 		TaskInitiateCommand cmd = new TaskInitiateCommand();
-		cmd.rounds = 10;
+		cmd.rounds = 5000;  // No of rounds
 
 		byte[] data = cmd.unpack();
 		for (Node key : overLay.keySet()) {
