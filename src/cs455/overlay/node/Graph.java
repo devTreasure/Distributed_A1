@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 
+import cs455.overlay.node.Graph.Vertex;
+
 class Graph {
 	private final Map<String, Vertex> graph; // mapping of vertex names to
 												// Vertex objects, built from a
@@ -51,7 +53,7 @@ class Graph {
 				this.previous.printPath();
 	            str.add(this);
 
-				System.out.printf(" -> %s(%d)", this.name, this.dist);
+				//System.out.printf(" -> %s(%d)", this.name, this.dist);
 
 			}
 
@@ -147,7 +149,7 @@ class Graph {
 			// return null;
 		}
 
-		//ArrayList<Vertex> str = graph.get(endName).printPath();
+		ArrayList<Vertex> str = graph.get(endName).printPath();
 		System.out.println();
 		return str;
 	}
@@ -162,4 +164,6 @@ class Graph {
 			System.out.println();
 		}
 	}
+
+
 }

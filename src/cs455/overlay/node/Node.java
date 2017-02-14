@@ -17,11 +17,8 @@ public class Node {
 	
 	
 	public String getyourName(){
-		
-		return this.ipAddress +":"+ this.port;
+		return this.ipAddress + ":" + this.port;
 	}
-	
-	
 
 	@Override
 	public String toString() {

@@ -53,18 +53,18 @@ public class MessageNode implements Runnable {
 
 	// All nodes in this over-lay. Retrieved from allLinks.
 	private HashSet<Node> allNodes = new HashSet<Node>();
-
-	// USed to store edges for the path finding
-	private Graph.Edge[] nodeEdges = null;
+	
+	//USed to store edges for the path finding
+	private Graph.Edge[] nodeEdges= null;  
 
 	private Random random = new Random();
 
 	// Statistics
-	private volatile int stat_sentMesssages;
-	private volatile int stat_receivedMessages;
-	private volatile int stat_relayedMessages;
-	private volatile double stat_sumOfSentPayload;
-	private volatile double stat_sumOfReceivedPayLoad;
+	volatile private int stat_sentMesssages;
+	volatile private int stat_receivedMessages;
+	volatile private int stat_relayedMessages;
+	volatile private double stat_sumOfSentPayload;
+	volatile private double stat_sumOfReceivedPayLoad;
 
 	public MessageNode() {
 	}
@@ -125,23 +125,30 @@ public class MessageNode implements Runnable {
 	private void printShortesPathsToAllConnectedNodes() {
 		for (Node n : allNodes) {
 			System.out.println(n);
+
 		}
 
 		System.out.println("----------------");
 		for (Link link : allLinks) {
 			System.out.println(link.from.toString());
 			System.out.println(link.to.toString());
+
 		}
 
 		Graph.Edge[] g = new Graph.Edge[allLinks.size()];
+
 		Object[] g_stage = allLinks.toArray(new Link[allLinks.size()]);
 
-		for (int i = 0; i <= allLinks.size() - 1; i++) {
-			Graph.Edge e = new Edge(((Link) g_stage[i]).from.getyourName(), ((Link) g_stage[i]).to.getyourName(),
-					((Link) g_stage[i]).weight);
-			g[i] = e;
-		}
+		// ((Link) g_stage[0]).weight
 
+		for (int i = 0; i <= allLinks.size() - 1; i++) {
+
+			Graph.Edge e = new Edge(((Link) g_stage[i]).from.getyourName(), ((Link) g_stage[i]).to.getyourName(),((Link) g_stage[i]).weight);
+			
+			g[i] = e;
+
+		}
+		
 		this.nodeEdges = g;
 
 		for (int i = 0; i < g.length; i++)
@@ -151,22 +158,28 @@ public class MessageNode implements Runnable {
 		}
 
 		Graph gx = new Graph(g);
+		
 		String START = this.messageNodeName + Integer.toString(this.messageNodePort);// ((Link)
-		String END = ((Link) g_stage[1]).from.getyourName(); // using for
-																// testing
+																						// g_stage[0]).from.getyourName();
+		String END = ((Link) g_stage[1]).from.getyourName();  //using for testing
 
 		gx.dijkstra(START);
-		System.out
-				.println("--Shortest path from --" + this.messageNodeIP + ":" + Integer.toString(this.messageNodePort));
+
+		System.out.println("--Shortest path from --" + this.messageNodeIP + ":" + Integer.toString(this.messageNodePort));
+
 		// This will print all shortest path from the current node
-		for (int i = 0; i <= g.length - 1; i++) {
-			ArrayList<Vertex> str = gx.printPath(((Link) g_stage[1]).from.getyourName());
-		}
+
+        ArrayList<Vertex> pathList= gx.printAllPaths();
+
+		ArrayList<Vertex> str = gx.printAllPaths();//(((Link) g_stage[1]).from.getyourName());
+
+		//}
 
 		// ArrayList<Vertex> str1 = gx.printPath(END);
 		// g.printAllPaths();
 
 		// System.out.println(START);
+		
 
 	}
 
@@ -384,25 +397,29 @@ public class MessageNode implements Runnable {
 	private void initiateMessages(int rounds) throws Exception {
 
 		Node selfNode = new Node(messageNodeIP, null, messageNodePort); // new
+																		// Node("127.0.0.1",
+																		// null,
+																		// messageNodePort);
 		HashSet<Node> copyOfMemebers = new HashSet<>(allNodes);
 		copyOfMemebers.remove(selfNode);
 
-		Iterator<Node> iterator = copyOfMemebers.iterator();
+		Iterator<Node> iterator = copyOfMemebers.iterator();	
 
-		Graph.Edge[] g = new Graph.Edge[allLinks.size()];
-		Object[] g_stage = allLinks.toArray(new Link[allLinks.size()]);
-		for (int i = 0; i <= allLinks.size() - 1; i++) {
-			Graph.Edge e = new Edge(((Link) g_stage[i]).from.getyourName(), ((Link) g_stage[i]).to.getyourName(),
-					((Link) g_stage[i]).weight);
-			g[i] = e;
+		Graph gx = new Graph(this.nodeEdges);
+
+		gx.dijkstra((this.messageNodeIP + this.messageNodePort));
+		// This will print all shortest path from the current node		
+		Node sink_node = null;
+		sink_node = iterator.next();		
+    	ArrayList<Vertex> listPath = gx.printAllPaths();//(sink_node.ipAddress +  sink_node.port);
+    	for (Vertex vertex : listPath) {
+    		if
+			
 		}
 
-		Graph gx = new Graph(g);
-
-		// START node
-		gx.dijkstra(selfNode.getyourName());
-
+    	
 		for (int i = 0; i < rounds; i++) {
+			
 			Node sink_node = null;
 			if (iterator.hasNext()) {
 				sink_node = iterator.next();
@@ -411,26 +428,15 @@ public class MessageNode implements Runnable {
 				iterator = copyOfMemebers.iterator();
 				sink_node = iterator.next();
 			}
-			// This will print all shortest path from the current node
+			
 			MessageCommand cmd = null;
-			ArrayList<Vertex> path = gx.printPath(sink_node.getyourName());
-			if (path != null && !path.isEmpty()) {
-				Vertex vertex = path.get(0);
-				System.out.println(vertex.name);
-				String[] data = vertex.name.split(":");
-				Node shorTestPathNode = new Node(data[0], null, Integer.parseInt(data[1]));
-				System.out.println("====================");
-				for (int innerJ = 0; innerJ < 5; innerJ++) {
-					cmd = new MessageCommand(shorTestPathNode.ipAddress, shorTestPathNode.port, sink_node.ipAddress,
-							sink_node.port, random.nextInt());
-				}
-				System.out.println(cmd);
-				this.stat_sentMesssages++;
-				this.stat_sumOfSentPayload += cmd.payload;
-				sendMessages(cmd.toIpAddress, cmd.toPort, cmd.unpack());
-			} else {
-				System.out.println("Can not find shortest path ....");
-			}
+			cmd = new MessageCommand(firstNeighbour.ipAddress, firstNeighbour.port, sink_node.ipAddress,sink_node.port, random.nextInt());
+		}
+		
+			System.out.println(cmd);
+			this.stat_sentMesssages++;
+			this.stat_sumOfSentPayload += cmd.payload;
+			sendMessages(cmd.toIpAddress, cmd.toPort, cmd.unpack());
 		}
 
 		informTheRegistryTaskCompleted(selfNode.ipAddress, messageNodePort);

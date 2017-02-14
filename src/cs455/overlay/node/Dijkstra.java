@@ -80,11 +80,10 @@ public class Dijkstra {
 		   
 	      Graph g = new Graph(GRAPH);
 	      g.dijkstra(START);
-	       ArrayList<Vertex>  str=  g.printPath(END);
-	      //g.printAllPaths();
-	    
-		//System.out.println(START);
-	    for (Vertex v : str) {
+	     // g.printAllPaths();
+	      ArrayList<Vertex> pathList= g.printPath(END);
+	    //System.out.println(START);
+	    for (Vertex v : pathList) {
 	    	
 	    	//System.out.println("Printing from collection");
 	    	System.out.println(v.name + " -- "  + v.dist );
