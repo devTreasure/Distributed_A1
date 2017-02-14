@@ -9,6 +9,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -27,6 +28,8 @@ import cs455.overlay.commands.ResponseCommand;
 import cs455.overlay.commands.TaskCompleteCommand;
 import cs455.overlay.commands.TaskInitiateCommand;
 import cs455.overlay.commands.TrafficSummaryCommand;
+import cs455.overlay.node.Graph.Edge;
+import cs455.overlay.node.Graph.Vertex;
 
 public class MessageNode implements Runnable {
 
@@ -107,13 +110,66 @@ public class MessageNode implements Runnable {
 				continueOperations = false;
 			} else if ("print-stats".equals(inputCmd)) {
 				messageNode.printStatistics();
-			}
-
-			else {
+			} else if ("print-shortest-path".equalsIgnoreCase(inputCmd)) {
+				messageNode.printShortesPathsToAllConnectedNodes();
+			} else {
 				System.out.println("Invalid command.");
 			}
 		}
 		System.out.println("Bye.");
+	}
+
+	private void printShortesPathsToAllConnectedNodes() {
+		for (Node n : allNodes) {
+			System.out.println(n);
+
+		}
+
+		System.out.println("----------------");
+		for (Link link : allLinks) {
+			System.out.println(link.from.toString());
+			System.out.println(link.to.toString());
+
+		}
+
+		Graph.Edge[] g = new Graph.Edge[allLinks.size()];
+
+		Object[] g_stage = allLinks.toArray(new Link[allLinks.size()]);
+
+		// ((Link) g_stage[0]).weight
+
+		for (int i = 0; i <= allLinks.size() - 1; i++) {
+
+			Graph.Edge e = new Edge(((Link) g_stage[i]).from.getyourName(), ((Link) g_stage[i]).to.getyourName(),
+					((Link) g_stage[i]).weight);
+			g[i] = e;
+
+		}
+
+		for (int i = 0; i < g.length; i++)
+		// allLinks.toArray(GRAPH);
+		{
+			System.out.println(g[i].v1 + "--" + g[i].v2 + "--"+ g[i].dist);
+		}
+
+		System.out.println("----------------");
+
+		Graph gx = new Graph(g);
+		String START = ((Link) g_stage[0]).from.getyourName();
+		String END = ((Link) g_stage[1]).from.getyourName();
+		gx.dijkstra(START);
+		ArrayList<Vertex> str = gx.printPath(END);
+		ArrayList<Vertex> str1 = gx.printPath(END);
+		// g.printAllPaths();
+
+		// System.out.println(START);
+		for (Vertex v : str) {
+
+			// System.out.println("Printing from collection");
+			System.out.println(v.name + " --> " + v.dist);
+
+		}
+
 	}
 
 	private void printStatistics() {

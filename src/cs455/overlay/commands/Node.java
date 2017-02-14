@@ -14,6 +14,12 @@ public class Node {
 		this.node_name = node_name;
 		this.port = port;
 	}
+	
+	
+	public String getyourName(){
+		
+		return this.ipAddress + this.port;
+	}
 
 	@Override
 	public String toString() {
