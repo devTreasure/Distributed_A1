@@ -53,6 +53,9 @@ public class MessageNode implements Runnable {
 
 	// All nodes in this over-lay. Retrieved from allLinks.
 	private HashSet<Node> allNodes = new HashSet<Node>();
+	
+	//USed to store edges for the path finding
+	private Graph.Edge[] nodeEdges= null;  
 
 	private Random random = new Random();
 
@@ -140,35 +143,44 @@ public class MessageNode implements Runnable {
 
 		for (int i = 0; i <= allLinks.size() - 1; i++) {
 
-			Graph.Edge e = new Edge(((Link) g_stage[i]).from.getyourName(), ((Link) g_stage[i]).to.getyourName(),
-					((Link) g_stage[i]).weight);
+			Graph.Edge e = new Edge(((Link) g_stage[i]).from.getyourName(), ((Link) g_stage[i]).to.getyourName(),((Link) g_stage[i]).weight);
+			
 			g[i] = e;
 
 		}
+		
+		this.nodeEdges = g;
 
 		for (int i = 0; i < g.length; i++)
 		// allLinks.toArray(GRAPH);
 		{
-			System.out.println(g[i].v1 + "--" + g[i].v2 + "--"+ g[i].dist);
+			System.out.println(g[i].v1 + "--" + g[i].v2 + "--" + g[i].dist);
 		}
 
-		System.out.println("----------------");
-
 		Graph gx = new Graph(g);
-		String START = ((Link) g_stage[0]).from.getyourName();
-		String END = ((Link) g_stage[1]).from.getyourName();
+		
+		String START = this.messageNodeName + Integer.toString(this.messageNodePort);// ((Link)
+																						// g_stage[0]).from.getyourName();
+		String END = ((Link) g_stage[1]).from.getyourName();  //using for testing
+
 		gx.dijkstra(START);
-		ArrayList<Vertex> str = gx.printPath(END);
-		ArrayList<Vertex> str1 = gx.printPath(END);
+
+		System.out
+				.println("--Shortest path from --" + this.messageNodeIP + ":" + Integer.toString(this.messageNodePort));
+
+		// This will print all shortest path from the current node
+
+		for (int i = 0; i <= g.length - 1; i++) {
+
+			ArrayList<Vertex> str = gx.printPath(((Link) g_stage[1]).from.getyourName());
+
+		}
+
+		// ArrayList<Vertex> str1 = gx.printPath(END);
 		// g.printAllPaths();
 
 		// System.out.println(START);
-		for (Vertex v : str) {
-
-			// System.out.println("Printing from collection");
-			System.out.println(v.name + " --> " + v.dist);
-
-		}
+		
 
 	}
 
@@ -392,9 +404,19 @@ public class MessageNode implements Runnable {
 		HashSet<Node> copyOfMemebers = new HashSet<>(allNodes);
 		copyOfMemebers.remove(selfNode);
 
-		Iterator<Node> iterator = copyOfMemebers.iterator();
+		Iterator<Node> iterator = copyOfMemebers.iterator();	
 
+		Graph gx = new Graph(this.nodeEdges);
+
+		gx.dijkstra((this.messageNodeIP + this.messageNodePort));
+		// This will print all shortest path from the current node		
+		Node sink_node = null;
+		sink_node = iterator.next();		
+    	ArrayList<Vertex> str = gx.printPath(	sink_node.ipAddress +  sink_node.port);
+
+    	
 		for (int i = 0; i < rounds; i++) {
+			/*
 			Node sink_node = null;
 			if (iterator.hasNext()) {
 				sink_node = iterator.next();
@@ -403,17 +425,20 @@ public class MessageNode implements Runnable {
 				iterator = copyOfMemebers.iterator();
 				sink_node = iterator.next();
 			}
+			*/
 			MessageCommand cmd = null;
-			if (neighBours.keySet().contains(sink_node)) {
+			cmd = new MessageCommand(firstNeighbour.ipAddress, firstNeighbour.port, sink_node.ipAddress,sink_node.port, random.nextInt());
+			
+		//	if (neighBours.keySet().contains(sink_node)) {
 				// direct neighbor
-				cmd = new MessageCommand(sink_node.ipAddress, sink_node.port, sink_node.ipAddress, sink_node.port,
-						random.nextInt());
-			} else {
+			//	cmd = new MessageCommand(sink_node.ipAddress, sink_node.port, sink_node.ipAddress, sink_node.port,random.nextInt());
+			} 
+			/*else {
 				// no direct connection. so send via first neighbor.
 				Node firstNeighbour = neighBours.keySet().iterator().next();
-				cmd = new MessageCommand(firstNeighbour.ipAddress, firstNeighbour.port, sink_node.ipAddress,
-						sink_node.port, random.nextInt());
-			}
+				cmd = new MessageCommand(firstNeighbour.ipAddress, firstNeighbour.port, sink_node.ipAddress,sink_node.port, random.nextInt());
+			}*/
+		
 			System.out.println(cmd);
 			this.stat_sentMesssages++;
 			this.stat_sumOfSentPayload += cmd.payload;

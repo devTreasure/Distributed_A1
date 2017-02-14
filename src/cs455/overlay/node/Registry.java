@@ -131,7 +131,7 @@ public class Registry implements Runnable {
 		}
 		links = new HashSet<>();
 		System.out.println((registeredNodes.size() * Cr) + 10);
-		IntStream ints = new Random().ints((registeredNodes.size() * Cr) + 10, 0, 10);
+		IntStream ints = new Random().ints((registeredNodes.size() * Cr) + 10, 1, 10);
 		int[] array = ints.toArray();
 		int arraIndex = 0;
 
